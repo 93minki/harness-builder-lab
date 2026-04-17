@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Editor / IDE
+.idea/
+*.swp
+*.swo
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
