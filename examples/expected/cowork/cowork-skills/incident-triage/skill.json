@@ -1,0 +1,11 @@
+{
+  "name": "incident-triage",
+  "description": "Triage a bug report into a reproducible and reviewable task.",
+  "trigger": "incident triage",
+  "version": "1.0.0",
+  "constraints": [
+    "Do not modify production systems",
+    "Do not push to main",
+    "Ask before risky actions"
+  ]
+}
