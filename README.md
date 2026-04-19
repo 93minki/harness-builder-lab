@@ -1,143 +1,108 @@
 # harness-builder
 
-사용자 인터뷰를 통해 직무 맞춤형 하네스를 설계하고 생성하는 Claude Code용 배포 스킬.
+`harness-builder` 는 사용자의 업무 방식과 작업 환경을 인터뷰해서 맞춤형 하네스를 설계하는 설치형 스킬이다.
+대상은 처음 Codex, Claude Code, Claude Cowork 를 쓰는 사용자이며, 개발자뿐 아니라 일반 사무직 사용자도 포함한다.
 
-생성 대상 플랫폼: **CODEX** / **Claude Code** / **Claude Cowork**
+이 스킬은 정해진 템플릿을 밀어 넣는 도구가 아니다.
+먼저 사용자의 목표, 반복 업무, 안전 경계, 현재 폴더의 의미를 확인한 뒤, 필요한 파일만 제안하고 승인을 받은 후 생성한다.
 
-배포 형태는 현재 **Claude Code 스킬 1개**다.
-즉, 사용자는 이 저장소의 `.claude/skills/harness-builder/SKILL.md`를 Claude Code 스킬로 설치한 뒤,
-그 스킬을 사용해 CODEX용 / Claude Code용 / Claude Cowork용 하네스 산출물을 생성한다.
+중요한 점:
+이 스킬은 사용자의 업무를 100% 완성된 형태로 담은 최종 하네스를 한 번에 만들어내는 도구가 아니다.
+대신 바로 실무에 투입할 수 있는 강한 1차 베이스를 만드는 것을 목표로 한다.
+이 베이스를 실제 작업에 써 보면서 더 구체적인 규칙, 명령, 템플릿, 금지 사항을 계속 보강하는 방식이 맞다.
 
----
+## Who It Is For
 
-## 설치
+- 처음 Codex, Claude Code, Claude Cowork 를 설정해보는 사용자
+- 자신의 업무에 맞는 개인화된 하네스를 원하는 사용자
+- 개발자와 비개발자가 함께 쓰는 팀
+- 바로 스크립트를 만들기보다 안전한 starter harness 부터 시작하고 싶은 사용자
 
-현재 이 저장소가 직접 제공하는 설치 경로는 `Claude Code 스킬 설치`다.
-CODEX는 생성 대상 플랫폼이지, 이 저장소가 별도로 제공하는 설치형 스킬 패키지는 아니다.
-아래 명령은 이 저장소를 로컬에 내려받았거나, `.claude/skills/harness-builder/SKILL.md` 원본 파일을 이미 확보한 상태를 전제로 한다.
+## What It Does
 
-### Mac / Linux
+`/harness-builder` 를 실행하면 스킬은 아래 순서로 진행한다.
 
-**전역 설치 (모든 프로젝트에서 사용):**
+1. 지금 어떤 업무를 돕고 싶은지 묻는다.
+2. 현재 이 스킬을 어디서 실행 중인지 묻는다. 예: Claude Code, Codex
+3. 어떤 플랫폼용 하네스를 만들고 싶은지 묻거나, 사용자가 잘 모르면 추천한다.
+4. 사용자의 언어, 기술 친숙도, 승인 정책, 반복 업무를 수집한다.
+5. 현재 폴더를 읽어도 되는지 별도로 확인한다.
+6. 생성할 파일 목록과 이유를 먼저 보여준다.
+7. 명시적 승인 후에만 파일을 생성한다.
+8. 생성 직후 형식과 경로를 검증한다.
 
-```bash
-mkdir -p ~/.claude/skills/harness-builder
-cp .claude/skills/harness-builder/SKILL.md ~/.claude/skills/harness-builder/SKILL.md
-```
+## What It Can Generate
 
-**프로젝트별 설치 (특정 프로젝트에서만 사용):**
+항상 모든 파일을 만들지는 않는다.
+인터뷰 내용과 승인 범위에 따라 필요한 것만 생성한다.
 
-```bash
-mkdir -p <your-project>/.claude/skills/harness-builder
-cp .claude/skills/harness-builder/SKILL.md <your-project>/.claude/skills/harness-builder/SKILL.md
-```
+- Codex: `AGENTS.md`, `docs/workflows/`, `docs/templates/`, `tools/`
+- Claude Code: `CLAUDE.md`, `.claude/settings.json`, `.claude/skills/`
+- Claude Cowork: `COWORK-BRIEF.md`, `tasks/*.md`, `templates/*.md`
 
-### Windows (PowerShell)
+기본값은 low-risk starter harness 다.
+근거가 충분하지 않거나 사용자가 비개발자라면 문서형 결과물부터 제안하고, 스크립트나 settings 변경은 별도 승인과 근거가 있을 때만 진행한다.
 
-**전역 설치 (모든 프로젝트에서 사용):**
+Codex 와 Claude Code 에서는 이 결과물이 `하네스의 강한 1차 베이스`가 된다.
+Claude Cowork 에서는 동일한 개념을 그대로 쓰기보다, 반복 업무를 안정적으로 맡길 수 있는 `재사용 가능한 work package` 로 보는 편이 맞다.
 
-```powershell
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\skills\harness-builder"
-Copy-Item ".claude\skills\harness-builder\SKILL.md" "$env:USERPROFILE\.claude\skills\harness-builder\SKILL.md"
-```
+## Strong First Base
 
-**프로젝트별 설치 (특정 프로젝트에서만 사용):**
+좋은 결과물의 기준은 완벽함이 아니라, 바로 오늘부터 도움이 되는가이다.
 
-```powershell
-New-Item -ItemType Directory -Force -Path "<your-project>\.claude\skills\harness-builder"
-Copy-Item ".claude\skills\harness-builder\SKILL.md" "<your-project>\.claude\skills\harness-builder\SKILL.md"
-```
+- Codex / Claude Code: 자주 쓰는 명령, 작업 범위, 승인 경계, 핵심 workflow, 산출물 형식이 들어간다
+- Claude Cowork: 자주 맡길 업무, 입력 형식, 출력 형식, 금지 표현, 사람 검토 지점이 들어간다
 
----
+이 정도가 갖춰지면 사용자는 이후 작업에서 실제로 부족한 부분을 덧붙일 수 있다.
 
-## 설치 범위와 보장
+예:
 
-- 이 저장소가 직접 배포하는 것은 `.claude/skills/harness-builder/SKILL.md` 하나다.
-- 이 스킬은 Claude Code에 설치해서 사용한다.
-- 스킬이 생성하는 결과물은 CODEX / Claude Code / Claude Cowork를 대상으로 할 수 있다.
-- Windows 설치 명령은 "복사" 기준 안내다.
-- 실제 하네스 생성 품질은 사용자 답변, 대상 저장소 상태, 기존 파일 충돌 여부에 따라 달라진다.
-- 파일 생성은 항상 초안 확인과 명시적 승인 이후에만 수행된다.
+- `AGENTS.md` 에 "main 직접 push 금지"만 있던 상태에서, 나중에 "PR 설명은 문제 / 원인 / 변경 / 검증 / 리스크 순서"를 추가
+- `CLAUDE.md` 에 자주 쓰는 테스트 명령만 넣어 둔 상태에서, 이후 `.claude/settings.json` 에 허용 명령과 deny 규칙을 추가
+- `COWORK-BRIEF.md` 에 "주간 리포트 작성" 규칙만 넣어 둔 상태에서, 나중에 `tasks/weekly-report.md` 에 슬랙용 짧은 버전과 노션용 긴 버전 출력을 분리
 
-## 사용법
+## Install
 
-설치 후 Claude Code를 사용하는 프로젝트 디렉토리에서:
+이 저장소는 동일한 내용을 가진 두 개의 설치용 `SKILL.md` 를 제공한다.
 
-```
-/harness-builder
-```
+- Claude Code 용: `.claude/skills/harness-builder/SKILL.md`
+- Codex 용: `.agents/skills/harness-builder/SKILL.md`
 
-또는 자연어로:
+사용자는 자신이 쓰는 도구의 루트 skill 경로에 해당 파일을 복사하면 된다.
+그다음 하네스를 만들고 싶은 프로젝트 폴더를 연 뒤 `/harness-builder` 를 실행한다.
 
-> "하네스 만들어줘", "내 Claude Code 환경 설정해줘", "맞춤 하네스 설계해줘"
+## How To Use
 
----
+1. 사용할 도구의 루트 skill 경로에 `harness-builder` 를 설치한다.
+2. 하네스 또는 work package 를 생성할 프로젝트 또는 작업 폴더를 연다.
+3. `/harness-builder` 를 실행한다.
+4. 질문에 답한다.
+5. 현재 폴더를 읽어도 되는지 결정한다.
+6. 생성 예정 파일 목록을 검토한다.
+7. 승인하면 스킬이 해당 폴더에 파일을 생성한다.
 
-## 흐름
+## How To Strengthen It Later
 
-1. **플랫폼 선택** — CODEX / Claude Code / Claude Cowork 중 선택
-2. **구조화 인터뷰** — 역할, 워크플로우, 실행 환경, 도구, 제약사항, 기존 자산 수집
-3. **충분성 검사** — 정보가 부족하면 추가 질문
-4. **초안 제시** — 생성될 파일, 근거, 검증 계획 미리보기
-5. **승인 후 생성** — 현재 프로젝트 디렉토리에 파일 생성
-6. **생성 후 검증** — JSON, 스크립트, 참조 경로, 제약 반영 여부 확인
+처음 생성한 결과물을 실제로 써 본 뒤 아래 방식으로 강화하면 된다.
 
----
+- 새로 자주 하게 된 업무가 생기면 `docs/workflows/` 또는 `tasks/` 를 추가
+- 에이전트가 자꾸 헷갈리는 경로, 명령, 금지 행동을 `AGENTS.md` 또는 `CLAUDE.md` 에 추가
+- 반복되는 문서 산출물이 있으면 `docs/templates/` 또는 `templates/` 로 분리
+- Claude Code 에서 실제로 필요한 권한과 hooks 가 확인되면 그때 `.claude/settings.json` 을 보강
+- Cowork 에서 반복 입력 형식이 정해지면 `tasks/<name>.md` 에 입력 예시와 출력 섹션 규칙을 추가
 
-## 스킬이 생성하는 출력 예시
+## Safety
 
-아래는 생성 가능한 대표 산출물이다.
-아래 구조는 배포물에 포함되지 않으며, 설치한 스킬이 사용자 프로젝트에 생성하는 예시다.
-모든 플랫폼 파일을 항상 만드는 것이 아니라, 인터뷰 결과와 사용자 승인 범위에 따라 필요한 것만 생성한다.
+- 폴더 탐색과 파일 생성은 별도 승인 단계로 나눈다.
+- 기존 파일이 있으면 파일별로 `생성`, `수정`, `건너뛰기` 를 구분해서 보여준다.
+- 사용자가 허용하지 않은 스크립트, 설정, 위험 작업은 생성하지 않는다.
+- 검증이 끝나기 전에는 완료로 간주하지 않는다.
 
-**CODEX**
-```
-AGENTS.md                        # 에이전트 역할 및 지침
-tools/
-├── <task-name>.sh / .py         # 반복 업무별 실행 스크립트
-docs/
-├── templates/<doc-type>.md      # 자주 작성하는 문서 템플릿
-└── workflows/<workflow>.md      # 멀티스텝 반복 워크플로우 설명
-```
+## Repository Layout
 
-**Claude Code**
-```
-CLAUDE.md                                    # 프로젝트 지침
-.claude/
-├── settings.json                            # 권한, hooks, env 설정
-└── skills/<name>/SKILL.md                   # 커스텀 스킬 (복수)
-docs/templates/<doc-type>.md                 # 문서 템플릿 (필요 시)
-```
+- `.claude/skills/harness-builder/SKILL.md`: Claude Code 설치용 스킬
+- `.agents/skills/harness-builder/SKILL.md`: Codex 설치용 스킬
+- `.gitignore`: 개발용 무시 목록
 
-**Claude Cowork**
-```
-cowork-skills/
-└── <skill-name>/
-    ├── skill.json     # 스킬 메타데이터 및 트리거
-    ├── prompt.md      # 스킬 시스템 프롬프트
-    └── README.md      # 설명 및 사용법
-```
-
----
-
-## 현재 상태
-
-- `0.4.0`부터는 인터뷰 근거 강화, 저장소 탐색, 워크플로우별 승인 경계, 플랫폼별 출력 계약, 생성 후 검증 단계를 포함한다.
-- 이 저장소는 템플릿 기반 코드 생성기가 아니라, 인터뷰 근거를 바탕으로 하네스를 설계하고 검증하는 생성 스킬이다.
-- 기존 파일과 안전하게 병합할 수 없는 경우, 스킬은 임의 병합 대신 덮어쓰기/건너뛰기/새 이름 제안을 사용해야 한다.
-
-## Examples
-
-`examples/` 는 이 스킬이 만들 수 있는 결과물을 보여주는 참고 자료다.
-사용자는 이 폴더를 가져갈 필요가 없고, 실제 설치에는 `.claude/skills/harness-builder/SKILL.md`만 있으면 된다.
-
-- `examples/persona/interview_answers.md`: 예시 인터뷰 입력
-- `examples/workflows/`: 예시 workflow 설명
-- `examples/expected/`: 플랫폼별 결과물 예시
-- `examples/checks/`: 예시 품질을 검토할 때 참고할 문서
-
-이 저장소를 유지보수할 때는 예시와 실제 스킬 동작이 크게 어긋나지 않는지 확인하는 것이 좋다.
-
-## 버전
-
-현재 스킬 버전: `0.4.0`
+이 저장소는 source repo 다.
+실제 하네스 또는 work package 파일은 사용자의 프로젝트 폴더 안에 생성된다.
